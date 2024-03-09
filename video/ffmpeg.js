@@ -1,14 +1,33 @@
 const path = require('path');
 const ffmpeg = require('fluent-ffmpeg');
 const { getTimeDifferenceForPlayback } = require('../utilities');
-// const hlsOutputPath = '../output';
 
 const blank = path.join(__dirname, '..', 'blank.mp4');
 const hlsOutputPath = path.join(__dirname, '..', 'output');
 
+const blankOutputOptions = [
+  '-s 1920x1080',
+  '-hls_flags delete_segments+append_list+omit_endlist',
+  '-f hls',
+  '-hls_time 5',
+  '-hls_list_size 4',
+  '-start_number 0',
+  '-hls_segment_filename ' + path.join(hlsOutputPath, 'segment%d.ts'),
+]
+
+const outputOptions = [
+  '-s 1920x1080',
+  '-hls_flags delete_segments+append_list+omit_endlist',
+  '-f hls',
+  '-hls_time 10',
+  '-hls_list_size 5',
+  '-start_number 0',
+  '-hls_segment_filename ' + path.join(hlsOutputPath, 'segment%d.ts'),
+];
+
 const streamEmpty = () => {
   console.log('stream from empty');
-  console.log(blank);
+
   const command = ffmpeg()
     .input(blank)
     .inputFormat('mp4')
@@ -17,15 +36,7 @@ const streamEmpty = () => {
       '-stream_loop -1'
     ])
     .inputFormat('mp4')
-    .outputOptions([
-      '-s 1920x1080',
-      '-hls_flags delete_segments+append_list+omit_endlist',
-      '-f hls',
-      '-hls_time 5',
-      '-hls_list_size 4',
-      '-start_number 0',
-      '-hls_segment_filename ' + path.join(hlsOutputPath, 'segment%d.ts'),
-    ])
+    .outputOptions(blankOutputOptions)
     .output(path.join(hlsOutputPath, 'index.m3u8'))
     .on('error', () => {})
     .on('end', () => {});
@@ -37,6 +48,7 @@ const streamEmpty = () => {
 
 const streamFromStart = (video, onEndCallback) => {
   console.log('stream from start');
+
   const command = ffmpeg()
     .input(video.url)
     .inputFormat('mp4')
@@ -44,15 +56,7 @@ const streamFromStart = (video, onEndCallback) => {
       '-readrate 1',
     ])
     .inputFormat('mp4')
-    .outputOptions([
-      '-s 1920x1080',
-      '-hls_flags delete_segments+append_list+omit_endlist',
-      '-f hls',
-      '-hls_time 10',
-      '-hls_list_size 5',
-      '-start_number 0',
-      '-hls_segment_filename ' + path.join(hlsOutputPath, 'segment%d.ts'),
-    ])
+    .outputOptions(outputOptions)
     .output(path.join(hlsOutputPath, 'index.m3u8'))
     .on('error', () => {})
     .on('end', onEndCallback);
@@ -63,6 +67,8 @@ const streamFromStart = (video, onEndCallback) => {
 };
 
 const streamFromMiddle = (video, onEndCallback) => {
+  console.log('stream from middle');
+
   const { differenceInSeconds } = getTimeDifferenceForPlayback(video.start);
 
   const command = ffmpeg()
@@ -73,15 +79,7 @@ const streamFromMiddle = (video, onEndCallback) => {
       '-readrate 1',
     ])
     .inputFormat('mp4')
-    .outputOptions([
-      '-s 1920x1080',
-      '-hls_flags delete_segments+append_list+omit_endlist',
-      '-f hls',
-      '-hls_time 10',
-      '-hls_list_size 5',
-      '-start_number 0',
-      '-hls_segment_filename ' + path.join(hlsOutputPath, 'segment%d.ts'),
-    ])
+    .outputOptions(outputOptions)
     .output(path.join(hlsOutputPath, 'index.m3u8'))
     .on('error', () => {})
     .on('end', onEndCallback);

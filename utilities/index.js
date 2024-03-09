@@ -1,4 +1,6 @@
 const getTimeDifference = (isoString) => {
+  if (!isoString) return null;
+
   const currentTime = new Date().getTime();
   const videoTime = new Date(isoString).getTime();
 
@@ -28,4 +30,12 @@ const getTimeDifferenceForPlayback = (isoString) => {
 module.exports = {
   getTimeDifference,
   getTimeDifferenceForPlayback,
+};
+
+const g = (isoString, duration /* time in seconds */) => {
+  const date = new Date(isoString).getTime() / 1000;
+
+  const nextAvailableTime = new Date((date + duration + 1) * 1000);
+
+  return nextAvailableTime.toISOString();
 };
